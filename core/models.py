@@ -61,7 +61,7 @@ class Category(models.Model):
 class Product(models.Model):
     title = models.CharField(max_length=255)
     category= models.ForeignKey(Category , on_delete = models.CASCADE)
-    discount= models.ForeignKey(Discount , on_delete = models.CASCADE)
+    discount= models.ForeignKey(Discount , on_delete = models.CASCADE , null=True , blank = True)
     old_price = models.FloatField(default = 0)
     new_price = models.FloatField(default = 0 , null = True , blank=True)
 

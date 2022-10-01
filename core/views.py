@@ -182,3 +182,106 @@ class DiscountSearch(APIView):
             return JsonResponse({"status":status.HTTP_500_INTERNAL_SERVER_ERROR , "msg":e.args[0]})
 
 
+class ProductView(APIView):
+    def get(self , request , pk=None , format = None):
+        try:
+            if pk:
+                query = Product.objects.filter(id = pk).last()
+                if query:
+                    serializers = ProductDetailsSerializers(query , many = False)
+                    return JsonResponse({"status":status.HTTP_200_OK , "data":serializers.data})
+                else:
+                    data = {}
+                    return JsonResponse({"status":status.HTTP_404_NOT_FOUND , "data":data})
+            else:
+                queryset = Product.objects.all().order_by("-id")
+                if len(queryset)>0:
+                    serializers = ProductDetailsSerializers(queryset , many = True)
+                    return JsonResponse({"status":status.HTTP_200_OK , "data":serializers.data})
+                else:
+                    data =[]
+                    return JsonResponse({"status":status.HTTP_404_NOT_FOUND , "data":data })
+        except Exception as e:
+            return JsonResponse({"status":status.HTTP_500_INTERNAL_SERVER_ERROR , "msg":e.args[0]})
+
+    def post(self, request, format=None):
+        try:
+            data = request.data
+            serializers = ProductSerializers(data=data)
+            serializers.is_valid(raise_exception=True)
+            serializers.save()
+            return JsonResponse({"status":status.HTTP_201_CREATED , "data":serializers.data})
+        except Exception as e:
+            return JsonResponse(
+                {"status": status.HTTP_500_INTERNAL_SERVER_ERROR, "msg": e.args[0]}
+            )
+
+    def put(self,request, pk, format = None):
+        try:
+            query = Product.objects.filter(id = pk).last()
+            if query:
+                
+                serializers = ProductSerializers(instance=query , data  = request.data , partial=True)
+                serializers.is_valid(raise_exception=True)
+                serializers.save()
+                return JsonResponse({"status":status.HTTP_200_OK , "data":serializers.data})
+            else:
+                return JsonResponse({"status":status.HTTP_404_NOT_FOUND})
+
+        except Exception as e:
+            return JsonResponse({"status":status.HTTP_500_INTERNAL_SERVER_ERROR , "msg":e.args[0]})
+    def delete(self,request, pk, format = None):
+        try:
+            query = Product.objects.filter(id = pk).last()
+            if query:
+                query.delete()
+                return JsonResponse({"status":status.HTTP_200_OK , "msg":"Product successfully deleted!" })
+            else:
+                return JsonResponse({"status":status.HTTP_404_NOT_FOUND})
+
+        except Exception as e:
+            return JsonResponse({"status":status.HTTP_500_INTERNAL_SERVER_ERROR , "msg":e.args[0]})
+
+
+class ProductSearch(APIView):
+    def get(self,request , title):
+        try:
+            queryset = Product.objects.filter(title__icontains = title)
+            if len(queryset)>1:
+                    serializers = ProductDetailsSerializers(queryset , many = True)
+                    return JsonResponse({"status":status.HTTP_200_OK , "data":serializers.data})
+            else:
+                data =[]
+                return JsonResponse({"status":status.HTTP_404_NOT_FOUND , "data":data })
+        except Exception as e:
+            return JsonResponse({"status":status.HTTP_500_INTERNAL_SERVER_ERROR , "msg":e.args[0]})
+
+
+class AssignDiscount(APIView):
+    def post(self,request ):
+        try:
+            data = request.data
+            discount_id = request.data["discount"]
+            discount_query = Discount.objects.filter(id = discount_id).last()
+            product_data = request.data["products"]
+            print("###################")
+            print(product_data)
+            if len(product_data)>0:
+                for i in product_data:
+                    print("PPPPPPPPPPPPPPPPP")
+                    print(i)
+                    query = Product.objects.filter(id = i["id"]).last()
+                    if query:
+                        query.discount = discount_query
+                        query.save()
+                    else:
+                        pass 
+                return JsonResponse({"status":status.HTTP_200_OK , "msg":"Discount data updated Successfully !"})
+
+            else:
+                return JsonResponse({"status":status.HTTP_404_NOT_FOUND , "data":data })
+        except Exception as e:
+            return JsonResponse({"status":status.HTTP_500_INTERNAL_SERVER_ERROR , "msg":e.args[0]})
+
+
+
