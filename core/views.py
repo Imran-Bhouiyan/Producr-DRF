@@ -7,7 +7,7 @@ from .serializers import *
 from django.shortcuts import render
 import datetime 
 from django.utils import timezone
-
+from django.db.models import Q
 # Create your views here.
 current_datetime = timezone.localtime(timezone.now())
 
@@ -97,7 +97,7 @@ class CategorySearch(APIView):
 
 
 class DiscountView(APIView):
-    def get(self , request , pk=None , format = None):
+    def get(self , request , pk=None ,valid = None, format = None):
         try:
             if pk:
                 query = Discount.objects.filter(id = pk).last()
@@ -107,6 +107,17 @@ class DiscountView(APIView):
                 else:
                     data = {}
                     return JsonResponse({"status":status.HTTP_404_NOT_FOUND , "data":data})
+            elif valid:
+                queryset = Discount.objects.filter( Q(start_date__lte =current_date , end_date__gte = current_date) | Q(start_time__lte = current_datetime ,end_time__gte = current_datetime ))
+                
+                print(len(queryset))
+                if len(queryset)>0:
+                    serializers = DiscountSerializers(queryset , many = True)
+                    return JsonResponse({"status":status.HTTP_200_OK , "data":serializers.data})
+                else:
+                    data =[]
+                    return JsonResponse({"status":status.HTTP_404_NOT_FOUND , "data":data })
+
             else:
                 queryset = Discount.objects.all().order_by("-id")
                 if len(queryset)>0:
@@ -264,12 +275,8 @@ class AssignDiscount(APIView):
             discount_id = request.data["discount"]
             discount_query = Discount.objects.filter(id = discount_id).last()
             product_data = request.data["products"]
-            print("###################")
-            print(product_data)
             if len(product_data)>0:
                 for i in product_data:
-                    print("PPPPPPPPPPPPPPPPP")
-                    print(i)
                     query = Product.objects.filter(id = i["id"]).last()
                     if query:
                         query.discount = discount_query

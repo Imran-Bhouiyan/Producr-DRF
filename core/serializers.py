@@ -43,9 +43,9 @@ class ProductDetailsSerializers(serializers.ModelSerializer):
 
     def get_new_prices(self,instance):
         try:
-            if instance.discount.date_type == "date" and instance.discount.start_date >= current_date and instance.discount.end_date <= current_date:
+            if instance.discount.date_type == "date" and instance.discount.start_date <= current_date and instance.discount.end_date >= current_date:
                 price = instance.new_price 
-            elif instance.discount.date_type == "time" and instance.discount.start_time >= current_datetime and instance.discount.end_time <= current_datetime:
+            elif instance.discount.date_type == "time" and instance.discount.start_time <= current_datetime and instance.discount.end_time >= current_datetime:
                 price = float(instance.new_price)
             else:
                 price = float(instance.new_price)

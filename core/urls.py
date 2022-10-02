@@ -11,6 +11,7 @@ urlpatterns = [
     #Discount
     path("create_discount/" , DiscountView.as_view()),
     path("alldiscount/" , DiscountView.as_view()),
+    path("allvaliddiscount/<str:valid>/" , DiscountView.as_view()),
     path("discount_details/<int:pk>/" , DiscountView.as_view()),
     path("discount_update/<int:pk>/" , DiscountView.as_view()),
     path("discount_delete/<int:pk>/" , DiscountView.as_view()),
